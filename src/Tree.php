@@ -62,7 +62,6 @@ class Tree
                     $cache[$value['id']] = &$return[$value['id']];
                 }
             }
-            memoryUsage(memory_get_usage(), 'in foreach Multi', false);
         }
         return $return;
     }
