@@ -9,7 +9,7 @@
             "email": "zlatov@ya.ru"
         }
     ],
-    "minimum-stability": "alpha",
+    "minimum-stability": "dev",
     "require": {
         "php": ">=5.4.0"
     },
