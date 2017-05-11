@@ -134,6 +134,7 @@ class Tree
     function to_html($array, $options = [])
     {
         $options = self::merge_options($options);
+        $replace_fields = self::get_tag_key($options['tpl_li']);
 
         $html = $options['tpl_ul_main'];
         $level = 0;
@@ -141,8 +142,10 @@ class Tree
         while ($level >= 0) {
             $mode = each($parentArray[$level]);
             if ($mode !== false) {
-                $replace["??id??"] = $mode[1][$options['field_id']];
-                $replace["??header??"] = $mode[1][$options['field_header']];
+                $replace = [];
+                foreach ($replace_fields as $tag_key) {
+                    $replace["??$tag_key??"] = (isset($mode[1][$tag_key]))?$mode[1][$tag_key]:'';
+                }
                 $html .= str_repeat("    ", $level*2 + 1) . str_replace(array_keys($replace),$replace,$options['tpl_li']);
                 if (count($mode[1]['childrens'])) {
                     $level++;
@@ -158,6 +161,17 @@ class Tree
             }
         }
         return $html;
+    }
+
+    public static function get_tag_key($tpl_li='')
+    {
+        if (empty($tpl_li)) {
+            $tpl_li = self::get_options()['tpl_li'];
+        }
+        $pattern = '/\?\?(\w+)\?\?/';
+        $subject = $tpl_li;
+        preg_match_all($pattern, $subject, $matches);
+        return $matches[1];
     }
 
 }
