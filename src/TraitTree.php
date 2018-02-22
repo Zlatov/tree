@@ -6,46 +6,63 @@ namespace Zlatov\Tree;
 */
 trait TraitTree
 {
-    public static function get_options()
+
+    private static $default_tree_options = [
+        'root_id' => 0,
+
+        'field_id'        => 'id',
+        'field_pid'       => 'pid',
+        'field_level'     => 'level',
+        'field_header'    => 'name',
+        'field_childrens' => 'childrens',
+        'only_fields' => null, // Массив полей необходимых пользователю
+
+        'tpl_ul_main' => '<ul class="tree">',
+        'tpl_ul'      => '<ul>',
+        'tpl_ul_end'  => '</ul>',
+        'tpl_li'      => '<li>??header?? <small>#??id??</small>',
+        'tpl_li_end'  => '</li>',
+
+        'forSelect' => false,
+        'addRoot' => false, // В массив для тега select добавить первый option со значением "без родителя"
+        'rootName' => 'Нет родителя (этот элемент корневой)',
+
+        'clearFromNonRoot' => true,
+    ];
+
+    public static function init()
     {
-        return [
-            'root_id' => 0,
-
-            'field_id'        => 'id',
-            'field_pid'       => 'pid',
-            'field_level'     => 'level',
-            'field_header'    => 'header',
-            'field_childrens' => 'childrens',
-            'only_fields' => null, // Массив полей необходимых пользователю
-
-            'tpl_ul_main' => '<ul class="tree">' . PHP_EOL,
-            'tpl_ul'      => '<ul>' . PHP_EOL,
-            'tpl_ul_end'  => '</ul>' . PHP_EOL,
-            'tpl_li'      => '<li>??header?? <small>#??id??</small>' . PHP_EOL,
-            'tpl_li_end'  => '</li>' . PHP_EOL,
-
-            'forSelect' => false,
-            'addRoot' => false, // В массив для тега select добавить первый option со значением "без родителя"
-            'rootName' => 'Нет родителя (этот элемент корневой)',
-
-            'clearFromNonRoot' => true,
-        ];
+        foreach (self::$default_tree_options as $key => $value) {
+            if (preg_match('/^tpl_/', $key)==1) {
+                self::$default_tree_options[$key].= PHP_EOL;
+            }
+        }
     }
 
-    public static function merge_options($options)
+    public static function tree_get_options()
     {
-        return array_merge(self::get_options(), $options);
+        return array_merge(self::$default_tree_options, self::$tree_options);
     }
 
     public static function tree_all()
     {
-        print_r('->');
-        return null;
+        $table_name = self::tree_get_options()['table_name'];
+        return self::tree_get_pdo()->query("CALL ${table_name}_tree_all;")->fetchAll();
+    }
+
+    // private static function merge_options($options)
+    // {
+    //     return array_merge(self::get_options(), $options);
+    // }
+
+    private static function tree_get_pdo()
+    {
+        return $GLOBALS[self::tree_get_options()['pdo']];
     }
 
     public static function to_nested($array, $options = [])
     {
-        $options = self::merge_options($options);
+        $options = self::tree_get_options();
         $return = [];
         $cache = [];
         // Для каждого элемента
@@ -139,7 +156,7 @@ trait TraitTree
 
     function to_html($array, $options = [])
     {
-        $options = self::merge_options($options);
+        $options = self::tree_get_options();
         $replace_fields = self::get_tag_key($options['tpl_li']);
 
         $html = $options['tpl_ul_main'];
@@ -181,3 +198,5 @@ trait TraitTree
     }
 
 }
+
+TraitTree::init();
